@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>เมืองแห่งความฝัน</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f0f9ff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+            max-width: 800px;
+            background-color: #fff;
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.05);
+        }
+
+        .game-header {
+            text-align: center;
+        }
+
+        #gameCanvas {
+            border: 2px solid #e2e8f0;
+            background-color: #e0f2fe;
+            cursor: pointer;
+            border-radius: 10px;
+            touch-action: none;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .control-button {
+            padding: 12px 20px;
+            font-size: 16px;
+            font-weight: bold;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+
+        .control-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+
+        .active {
+            box-shadow: 0 0 0 3px #1d4ed8, 0 6px 10px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen">
+    <div class="game-container">
+        <div class="game-header">
+            <h1 class="text-3xl font-bold text-gray-800">เมืองแห่งความฝัน</h1>
+            <p class="text-sm text-gray-500 mt-2">คลิกบนหน้าจอเพื่อสร้างโลกในฝันของคุณ!</p>
+        </div>
+
+        <canvas id="gameCanvas"></canvas>
+
+        <div class="controls">
+            <button id="addTreeBtn" class="control-button bg-green-500 text-white hover:bg-green-600">
+                <span class="text-2xl">🌳</span> ต้นไม้
+            </button>
+            <button id="addFlowerBtn" class="control-button bg-pink-400 text-white hover:bg-pink-500">
+                <span class="text-2xl">🌸</span> ดอกไม้
+            </button>
+            <button id="addHouseBtn" class="control-button bg-blue-500 text-white hover:bg-blue-600">
+                <span class="text-2xl">🏠</span> บ้าน
+            </button>
+            <button id="addSunBtn" class="control-button bg-yellow-400 text-white hover:bg-yellow-500">
+                <span class="text-2xl">☀️</span> ดวงอาทิตย์
+            </button>
+            <button id="addCloudBtn" class="control-button bg-white text-gray-700 hover:bg-gray-100">
+                <span class="text-2xl">☁️</span> เมฆ
+            </button>
+            <button id="clearBtn" class="control-button bg-red-500 text-white hover:bg-red-600">
+                <span class="text-2xl">❌</span> ล้าง
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        let activeTool = 'tree';
+
+        const objects = [];
+
+        function setCanvasSize() {
+            const container = document.querySelector('.game-container');
+            canvas.width = Math.min(600, container.clientWidth - 40);
+            canvas.height = Math.min(400, container.clientHeight - 100);
+            drawAllObjects();
+        }
+
+        window.addEventListener('resize', setCanvasSize);
+        window.onload = setCanvasSize;
+
+        function drawAllObjects() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            for (const obj of objects) {
+                drawObject(obj.type, obj.x, obj.y);
+            }
+        }
+
+        function drawObject(type, x, y) {
+            ctx.font = '48px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            let emoji;
+            switch(type) {
+                case 'tree': emoji = '🌳'; break;
+                case 'flower': emoji = '🌸'; break;
+                case 'house': emoji = '🏠'; break;
+                case 'sun': emoji = '☀️'; break;
+                case 'cloud': emoji = '☁️'; break;
+            }
+            ctx.fillText(emoji, x, y);
+        }
+
+        canvas.addEventListener('click', (e) => {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            if (activeTool) {
+                objects.push({ type: activeTool, x, y });
+                drawObject(activeTool, x, y);
+            }
+        });
+        
+        // Touch event handling
+        canvas.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            const rect = canvas.getBoundingClientRect();
+            const touch = e.touches[0];
+            const x = touch.clientX - rect.left;
+            const y = touch.clientY - rect.top;
+
+            if (activeTool) {
+                objects.push({ type: activeTool, x, y });
+                drawObject(activeTool, x, y);
+            }
+        });
+
+        // Event listeners for buttons
+        document.getElementById('addTreeBtn').addEventListener('click', () => setActiveTool('tree'));
+        document.getElementById('addFlowerBtn').addEventListener('click', () => setActiveTool('flower'));
+        document.getElementById('addHouseBtn').addEventListener('click', () => setActiveTool('house'));
+        document.getElementById('addSunBtn').addEventListener('click', () => setActiveTool('sun'));
+        document.getElementById('addCloudBtn').addEventListener('click', () => setActiveTool('cloud'));
+        document.getElementById('clearBtn').addEventListener('click', () => {
+            objects.length = 0; // Clear the array
+            drawAllObjects();
+        });
+
+        function setActiveTool(tool) {
+            activeTool = tool;
+            const buttons = document.querySelectorAll('.control-button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            document.getElementById(`add${tool.charAt(0).toUpperCase() + tool.slice(1)}Btn`).classList.add('active');
+        }
+
+        // Set initial active tool
+        setActiveTool('tree');
+
+    </script>
+</body>
+</html>
